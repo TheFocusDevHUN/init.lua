@@ -6,6 +6,11 @@ return {
 			"williamboman/mason-lspconfig.nvim",
 		},
 		config = function()
+			local lspconfig = require("lspconfig")
+			local capabilities = require("blink.cmp").get_lsp_capabilities()
+
+			local lsp_settings = {}
+
 			require("mason").setup()
 			require("mason-lspconfig").setup({
 				ensure_installed = {
@@ -13,58 +18,56 @@ return {
 					"gopls",
 					"pyright",
 				},
-			})
-			require("mason-lspconfig").setup_handlers({
-				-- The first entry (without a key) will be the default handler
-				-- and will be called for each installed server that doesn't have
-				-- a dedicated handler.
-				function(server_name) -- default handler (optional)
-					require("lspconfig")[server_name].setup({
-						capabilities = require("blink.cmp").get_lsp_capabilities(),
-					})
-				end,
+				handlers = {
+					function(server_name)
+						local settings = lsp_settings[server_name]
+						if settings then
+							lspconfig[server_name].setup(vim.tbl_extend("force", {
+								capabilities = capabilities,
+							}, settings()))
+						else
+							lspconfig[server_name].setup({
+								capabilities = capabilities,
+							})
+						end
+					end,
+				},
 			})
 		end,
 	},
+
+	{
+		"folke/lazydev.nvim",
+		ft = "lua", -- only load on lua files
+		opts = {
+			library = {
+				"lazy.nvim",
+				-- It can also be a table with trigger words / mods
+				-- Only load luvit types when the `vim.uv` word is found
+				{ path = "${3rd}/luv/library", words = { "vim%.uv" } },
+			},
+			-- always enable unless `vim.g.lazydev_enabled = false`
+			-- This is the default
+			enabled = function(root_dir)
+				return vim.g.lazydev_enabled == nil and true or vim.g.lazydev_enabled
+			end,
+		},
+	},
 	{
 		"saghen/blink.cmp",
-		event = { "lspAttach" },
-		-- optional: provides snippets for the snippet source
+		event = { "LspAttach" },
 		dependencies = "rafamadriz/friendly-snippets",
-
-		-- use a release tag to download pre-built binaries
 		version = "*",
-		-- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
-		-- build = 'cargo build --release',
-		-- If you use nix, you can build from source using latest nightly rust with:
-		-- build = 'nix run .#build-plugin',
-
-		---@module 'blink.cmp'
-		---@type blink.cmp.Config
 		opts = {
-			-- 'default' for mappings similar to built-in completion
-			-- 'super-tab' for mappings similar to vscode (tab to accept, arrow keys to navigate)
-			-- 'enter' for mappings similar to 'super-tab' but with 'enter' to accept
-			-- See the full "keymap" documentation for information on defining your own keymap.
 			keymap = {
 				preset = "super-tab",
 				["<C-d>"] = { "show_documentation", "fallback" },
 			},
-
 			appearance = {
-				-- Sets the fallback highlight groups to nvim-cmp's highlight groups
-				-- Useful for when your theme doesn't support blink.cmp
-				-- Will be removed in a future release
 				use_nvim_cmp_as_default = true,
-				-- Set to 'mono' for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-				-- Adjusts spacing to ensure icons are aligned
 				nerd_font_variant = "mono",
 			},
-
 			signature = { enabled = true },
-
-			-- Default list of enabled providers defined so that you can extend it
-			-- elsewhere in your config, without redefining it, due to `opts_extend`
 			sources = {
 				default = { "lsp", "path", "snippets", "buffer" },
 			},

@@ -1,8 +1,24 @@
 return {
+  "lewis6991/gitsigns.nvim",
 	"folke/which-key.nvim",
 	"mbbill/undotree",
 	"tpope/vim-fugitive",
 	"laytan/cloak.nvim",
+	{
+		"echasnovski/mini.pairs",
+		version = "*",
+		config = true,
+	},
+	{
+		"echasnovski/mini.move",
+		version = "*",
+		config = true,
+	},
+	{
+		"echasnovski/mini.comment",
+		version = "*",
+		config = true,
+	},
 	{
 		"folke/trouble.nvim",
 		opts = {},
@@ -14,15 +30,6 @@ return {
 			"nvim-treesitter/nvim-treesitter",
 		},
 		lazy = false,
-		config = function()
-			require("refactoring").setup()
-		end,
-	},
-	{
-		"j-hui/fidget.nvim",
-		tag = "v1.5.0", -- Make sure to update this to something recent!
-    config = function()
-      require("fidget").setup()
-    end
+		config = true,
 	},
 }
